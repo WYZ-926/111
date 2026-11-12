@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>賴柔樺 - 個人網站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0d0714 0%, #1a0b2e 50%, #2a0845 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #meteor-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .card-container {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+                        0 0 20px rgba(186, 104, 200, 0.2);
+            border-radius: 24px;
+            padding: 40px 28px;
+            max-width: 540px;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6),
+                        0 0 30px rgba(186, 104, 200, 0.4);
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(45deg, #b388ff, #7c4dff, #ea80fc);
+            box-shadow: 0 0 20px rgba(179, 136, 255, 0.5);
+        }
+
+        .avatar-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            background-color: #2a1b4e;
+            display: block;
+        }
+
+        .name {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #ffffff, #e1bee7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .department {
+            font-size: 0.95rem;
+            color: #d1c4e9;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .bio {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e0e0e0;
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border-left: 3px solid #b388ff;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #b388ff;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .skills-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .skill-tag {
+            background: rgba(124, 77, 255, 0.2);
+            border: 1px solid rgba(179, 136, 255, 0.4);
+            color: #f3e5f5;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .skill-tag:hover {
+            background: rgba(179, 136, 255, 0.4);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(179, 136, 255, 0.5);
+        }
+
+        /* 照片作品介紹區塊 */
+        .portfolio-section {
+            margin-bottom: 28px;
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .portfolio-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            text-align: left;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .portfolio-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(179, 136, 255, 0.5);
+        }
+
+        .portfolio-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            background-color: #2a1b4e;
+        }
+
+        .portfolio-info {
+            padding: 12px;
+        }
+
+        .portfolio-info h3 {
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .portfolio-info p {
+            font-size: 0.8rem;
+            color: #b0bec5;
+            line-height: 1.4;
+        }
+
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 24px;
+            background: linear-gradient(90deg, #7c4dff, #b388ff);
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .contact-btn:hover {
+            background: linear-gradient(90deg, #651fff, #7c4dff);
+            box-shadow: 0 6px 20px rgba(124, 77, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="meteor-canvas"></canvas>
+
+    <div class="card-container">
+        <!-- 大頭貼 -->
+        <div class="avatar-wrapper">
+            <img src="photo.png" alt="賴柔樺的照片" class="avatar-icon" onerror="this.src='https://via.placeholder.com/150/2a0845/ffffff?text=Photo'">
+        </div>
+
+        <h1 class="name">賴柔樺</h1>
+        <p class="department">國立澎湖科技大學 ｜ 餐旅管理系</p>
+        
+        <p class="bio">熱愛烘焙，致力於提供溫暖的服務體驗。</p>
+
+        <div class="section-title">SPECIALTIES</div>
+        <div class="skills-container">
+            <span class="skill-tag">精品咖啡</span>
+            <span class="skill-tag">烘焙甜點</span>
+            <span class="skill-tag">外場服務</span>
+        </div>
+
+        <!-- 兩張照片作品介紹區 -->
+        <div class="portfolio-section">
+            <div class="section-title">PORTFOLIO & WORK</div>
+            <div class="portfolio-grid">
+                
+                <!-- 照片 1 -->
+                <div class="portfolio-card">
+                    <img src="photo1.jpg" alt="烘焙作品" class="portfolio-img" onerror="this.src='https://via.placeholder.com/300x200/2a0845/ffffff?text=Photo+1'">
+                    <div class="portfolio-info">
+                        <h3>手作烘焙甜點</h3>
+                        <p>專注於口感與視覺的完美融合，帶給賓客最溫暖的甜點體驗。</p>
+                    </div>
+                </div>
+
+                <!-- 照片 2 -->
+                <div class="portfolio-card">
+                    <img src="photo2.webp" alt="特調咖啡與外場服務" class="portfolio-img" onerror="this.src='https://via.placeholder.com/300x200/2a0845/ffffff?text=Photo+2'">
+                    <div class="portfolio-info">
+                        <h3>精品咖啡萃取</h3>
+                        <p>精確掌握咖啡風味與萃取細節，展現極致風味與專業服務。</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 聯絡按鈕 -->
+        <a href="mailto:rouhualai@gmail.com" class="contact-btn">
+            ✉ 聯絡我：rouhualai@gmail.com
+        </a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('meteor-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const stars = [];
+        const numStars = 100;
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.5,
+                alpha: Math.random()
+            });
+        }
+
+        const meteors = [];
+        class Meteor {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width + 200;
+                this.y = Math.random() * -height / 2;
+                this.length = Math.random() * 80 + 60;
+                this.speed = Math.random() * 6 + 4;
+                this.angle = Math.PI / 4;
+                this.opacity = Math.random() * 0.7 + 0.3;
+            }
+            update() {
+                this.x -= this.speed * Math.cos(this.angle);
+                this.y += this.speed * Math.sin(this.angle);
+                if (this.x < -100 || this.y > height + 100) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.strokeStyle = `rgba(216, 180, 254, ${this.opacity})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(
+                    this.x + this.length * Math.cos(this.angle),
+                    this.y - this.length * Math.sin(this.angle)
+                );
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 4; i++) {
+            meteors.push(new Meteor());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(star => {
+                ctx.globalAlpha = star.alpha;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.globalAlpha = 1;
+            meteors.forEach(meteor => {
+                meteor.update();
+                meteor.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
