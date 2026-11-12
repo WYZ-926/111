@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e8">
+<meta name="description" content="乃瀧小吃店候位、點餐與廚房系統">
+<title>乃瀧小吃店｜店務系統</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --bg: #f6f1e8;
+    --card: #fffdf9;
+    --ink: #2b2119;
+    --muted: #83725f;
+    --line: #e4d7c5;
+    --accent: #b04a2f;
+    --accent-dark: #8f3a24;
+    --accent-soft: #f7e5dd;
+    --gold: #c39a45;
+    --green: #2e7d4f;
+    --green-soft: #e4f2e9;
+    --radius: 20px;
+  }
+
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 50% -12%, #fff9f0 0%, rgba(255, 249, 240, 0) 70%),
+      var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
+      "PingFang TC", "Microsoft JhengHei", sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    padding: 0 16px calc(36px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  .hero { position: relative; padding: 30px 0 14px; text-align: center; }
+  .refresh-btn {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    height: 40px;
+    padding: 0 14px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--muted);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .hero .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px; margin: 0;
+    font-size: 14px; letter-spacing: .24em; color: var(--accent);
+  }
+  .hero .eyebrow::before, .hero .eyebrow::after { content: ""; width: 20px; height: 1px; background: currentColor; opacity: .5; }
+  .hero h1 { margin: 10px 0 6px; font-size: 30px; letter-spacing: .08em; }
+  .hero p { margin: 0; font-size: 15px; color: var(--muted); }
+
+  .tabs {
+    display: flex; gap: 8px; margin: 16px 0 4px; padding: 6px;
+    background: #efe6d8; border-radius: 16px;
+  }
+  .tab {
+    flex: 1; min-width: 0; border: 0; border-radius: 12px; padding: 10px 6px;
+    background: transparent; color: var(--muted); font: inherit; font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.2;
+  }
+  .tab.active { background: var(--card); color: var(--accent-dark); box-shadow: 0 2px 8px rgba(70,45,25,.08); }
+  .tab .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 24px; height: 24px; padding: 0 8px; border-radius: 99px;
+    background: var(--accent-soft); color: var(--accent-dark); font-size: 14px; font-weight: 800;
+  }
+  .tab.active .badge { background: var(--accent); color: #fff; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(70, 45, 25, .04), 0 12px 28px rgba(70, 45, 25, .05);
+  }
+  .card h2 { margin: 0 0 16px; font-size: 20px; letter-spacing: .06em; }
+  .card h3 { margin: 0 0 10px; font-size: 17px; color: var(--accent-dark); }
+
+  .field { display: block; margin: 0 0 18px; padding: 0; border: 0; min-width: 0; }
+  .field > span, .field legend { display: block; padding: 0; margin-bottom: 10px; font-size: 16px; font-weight: 700; }
+  .field em { font-style: normal; font-weight: 500; font-size: 14px; color: var(--muted); margin-left: 8px; }
+
+  .field input[type="text"], .field textarea {
+    width: 100%; border: 2px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink);
+    font: inherit; transition: border-color .15s, box-shadow .15s;
+  }
+  .field input[type="text"] { height: 58px; padding: 0 18px; font-size: 20px; }
+  .field textarea { min-height: 72px; padding: 12px 14px; font-size: 16px; resize: vertical; }
+  .field input[type="text"]::placeholder, .field textarea::placeholder { color: #b6a897; }
+  .field input[type="text"]:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .field.invalid input[type="text"] { border-color: #c0392b; box-shadow: 0 0 0 4px rgba(192, 57, 43, .12); }
+  .err { margin: 8px 0 0; font-size: 16px; font-weight: 700; color: #c0392b; }
+
+  .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .seg label { position: relative; display: block; }
+  .seg input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+  .seg span {
+    display: flex; align-items: center; justify-content: center; height: 58px;
+    border: 2px solid var(--line); border-radius: 14px; background: #fff;
+    font-size: 20px; font-weight: 700; color: var(--muted);
+  }
+  .seg input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .primary {
+    width: 100%; height: 60px; border: 0; border-radius: 16px; background: var(--accent); color: #fff;
+    font: inherit; font-size: 21px; font-weight: 700; letter-spacing: .12em; cursor: pointer;
+    box-shadow: 0 12px 24px rgba(176, 74, 47, .25);
+  }
+  .primary:hover { background: var(--accent-dark); }
+  .primary:disabled { background: #cdb9ae; box-shadow: none; cursor: not-allowed; }
+
+  .ticket { margin-top: 20px; padding: 18px; text-align: center; border: 2px dashed #dfb9a5; border-radius: 16px; background: linear-gradient(180deg, #fff8f2, #fdf0e6); }
+  .ticket .tlabel { margin: 0; font-size: 14px; letter-spacing: .22em; color: var(--accent); }
+  .ticket .tno { margin: 4px 0 4px; font-size: 54px; font-weight: 800; letter-spacing: .08em; color: var(--accent); line-height: 1.15; }
+  .ticket .tmeta { margin: 0; font-size: 15px; color: var(--muted); }
+
+  .list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .list-head h2 { margin: 0; }
+  .count { font-size: 15px; color: var(--muted); }
+  .count strong { color: var(--green); }
+
+  .block-label { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 15px; font-weight: 700; letter-spacing: .1em; color: var(--muted); }
+  .block-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .block-label.called { color: var(--accent); }
+  .queue { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .queue + .block-label { margin-top: 18px; }
+
+  .row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; padding: 16px; border: 2px solid var(--line); border-radius: 16px; background: #fff; }
+  .row.first { border-color: #e8c2af; background: linear-gradient(180deg, #fff7f2, #fffdfb); }
+  .row.called { border-color: #e2a98f; background: linear-gradient(180deg, #fff6f0, #fffdf9); }
+  .row.passed { background: #fbf8f2; border-style: dashed; }
+  .no { grid-row: 1 / 3; align-self: center; display: flex; align-items: center; justify-content: center; min-width: 70px; height: 54px; padding: 0 10px; border-radius: 13px; background: var(--accent-soft); color: var(--accent-dark); font-size: 18px; font-weight: 800; }
+  .row.first .no, .row.called .no { background: var(--accent); color: #fff; }
+  .row.passed .no { background: #eee6d9; color: var(--muted); }
+  .body { min-width: 0; align-self: center; }
+  .nmrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .nm { margin: 0; font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
+  .tag { padding: 3px 9px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 700; }
+  .tag.green { background: var(--green-soft); color: var(--green); }
+  .meta { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+
+  .actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .btn { flex: 1; height: 50px; border-radius: 13px; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
+  .btn-call { border: 0; background: var(--accent); color: #fff; }
+  .btn-done { border: 0; background: var(--green); color: #fff; }
+  .btn-pass { border: 2px solid var(--line); background: #fff; color: var(--muted); }
+  .btn-back { border: 0; background: var(--gold); color: #fff; flex: 1 1 100%; }
+  .btn-remove { flex: 0 0 auto; border: 0; background: none; color: #b3a48f; font: inherit; font-size: 14px; text-decoration: underline; padding: 0 6px; cursor: pointer; }
+
+  .empty { margin: 4px 0 2px; padding: 16px 0; text-align: center; font-size: 16px; color: var(--muted); }
+
+  .tables { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .table-card { border: 2px solid var(--line); border-radius: 16px; padding: 14px; background: #fff; }
+  .table-card.free { border-color: #b9d8c4; background: linear-gradient(180deg, #f6fbf8, #fff); }
+  .table-card.busy { border-color: #d8c8b0; background: linear-gradient(180deg, #fffbf5, #fff); }
+  .table-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .table-no { font-size: 18px; font-weight: 800; }
+  .status { padding: 3px 9px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+  .status.free { background: var(--green-soft); color: var(--green); }
+  .status.busy { background: #f4ead8; color: #8a6a2d; }
+  .table-meta { margin: 0; font-size: 15px; color: var(--muted); }
+  .table-guest { margin: 8px 0 0; font-size: 16px; font-weight: 700; color: var(--ink); }
+  .btn-clear { width: 100%; height: 44px; margin-top: 10px; border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--muted); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  .seat-panel { margin-top: 14px; padding: 16px; border: 2px solid #dfb9a5; border-radius: 16px; background: linear-gradient(180deg, #fff8f2, #fdf0e6); }
+  .seat-title { margin: 0 0 4px; font-size: 17px; font-weight: 700; color: var(--accent-dark); }
+  .seat-sub { margin: 0 0 12px; font-size: 15px; color: var(--muted); }
+  .seat-options { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .seat-opt { flex: 1 1 calc(50% - 5px); height: 50px; border: 0; border-radius: 13px; background: var(--green); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .seat-cancel { width: 100%; height: 46px; border: 2px solid var(--line); border-radius: 13px; background: #fff; color: var(--muted); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .hint { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: #fff3ee; color: #a04a2e; font-size: 15px; font-weight: 700; }
+  .info { margin: 0; padding: 14px 16px; border-radius: 14px; background: #f3ede3; color: var(--muted); font-size: 16px; }
+
+  .table-pick { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pick-btn { flex: 1 1 calc(50% - 5px); min-height: 56px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
+  .pick-btn.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-dark); }
+
+  .menu-cat { margin: 18px 0 10px; font-size: 16px; font-weight: 700; color: var(--accent-dark); }
+  .menu-cat:first-of-type { margin-top: 0; }
+  .menu-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .menu-btn { width: 100%; min-height: 72px; padding: 14px 16px; border: 2px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+  .menu-btn:active { transform: translateY(1px); }
+  .menu-btn:disabled { opacity: .55; cursor: not-allowed; background: #f3efe8; }
+  .menu-btn:disabled .menu-price { color: var(--muted); }
+  .menu-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; }
+  .menu-name { font-size: 19px; font-weight: 700; }
+  .menu-price { font-size: 18px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+  .allergen-red { font-size: 15px; font-weight: 700; color: #c0392b; }
+  .sold-tag { font-size: 14px; font-weight: 800; color: #8a6a2d; }
+
+  .menu-btn.has-img { flex-direction: row; align-items: center; gap: 12px; min-height: 0; }
+  .menu-img { width: 96px; height: 80px; flex: 0 0 96px; border-radius: 12px; object-fit: cover; background: #f3ede3; }
+  .menu-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+  .stock-sec { margin-top: 18px; border-top: 2px solid var(--line); padding-top: 14px; }
+  .stock-sec h3 { margin: 0 0 10px; font-size: 17px; }
+  .stock-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .stock-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 12px; background: #fff; }
+  .stock-name { font-size: 16px; font-weight: 700; }
+  .stock-btn { flex: 0 0 auto; height: 40px; padding: 0 14px; border: 0; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .stock-btn.on { background: var(--green-soft); color: var(--green); }
+  .stock-btn.off { background: #efe3d6; color: #8a5a2b; }
+
+  .cart-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .cart-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 12px; align-items: center; padding: 14px; border: 2px solid var(--line); border-radius: 14px; background: #fff; }
+  .cart-name { font-size: 17px; font-weight: 700; }
+  .cart-sub { font-size: 14px; color: var(--muted); }
+  .qty { display: inline-flex; align-items: center; gap: 6px; }
+  .qty button { width: 44px; height: 44px; border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 22px; font-weight: 700; cursor: pointer; line-height: 1; }
+  .qty button:hover { border-color: var(--accent); color: var(--accent); }
+  .qty span { min-width: 28px; text-align: center; font-size: 18px; font-weight: 700; }
+  .subtotal { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 0; padding-top: 14px; border-top: 2px dashed var(--line); font-size: 18px; font-weight: 700; }
+  .subtotal strong { font-size: 22px; color: var(--accent); }
+  .quick-notes { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+  .chip { border: 2px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font: inherit; font-size: 14px; font-weight: 700; padding: 8px 12px; cursor: pointer; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .send-msg { margin: 10px 0 0; font-size: 15px; color: var(--green); font-weight: 700; }
+  .warn-box { margin: 14px 0 0; padding: 10px 12px; border-radius: 12px; background: #d93025; color: #fff; font-size: 15px; font-weight: 800; }
+
+  .k-cols { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .k-col { border: 2px solid var(--line); border-radius: 16px; padding: 14px; background: #faf7f0; }
+  .k-col h3 { margin: 0 0 10px; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+  .k-col h3 span { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .order-card { border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; margin-bottom: 10px; }
+  .order-card:last-child { margin-bottom: 0; }
+  .order-head { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 16px; }
+  .order-meta { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+  .order-items { margin: 8px 0 0; padding-left: 20px; font-size: 15px; }
+  .note-box { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; font-size: 14px; }
+  .note-allergy { background: #d93025; color: #fff; font-weight: 800; }
+  .note-normal { background: #fff3b0; color: #6a5200; font-weight: 700; }
+  .k-action { width: 100%; height: 46px; margin-top: 10px; border: 0; border-radius: 12px; font: inherit; font-size: 16px; font-weight: 700; color: #fff; cursor: pointer; }
+  .k-start { background: var(--accent); }
+  .k-finish { background: var(--green); }
+
+  .rules { padding: 0; overflow: hidden; }
+  .rules summary { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; font-size: 16px; font-weight: 700; cursor: pointer; list-style: none; }
+  .rules summary::-webkit-details-marker { display: none; }
+  .rules summary::after { content: "＋"; color: var(--muted); font-weight: 400; }
+  .rules[open] summary::after { content: "－"; }
+  .rules ol { margin: 0; padding: 0 22px 18px 40px; font-size: 16px; color: var(--muted); line-height: 1.9; }
+
+  .foot { margin-top: 14px; text-align: center; }
+  .ghost { border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; padding: 10px; cursor: pointer; }
+  .note { margin: 8px auto 0; max-width: 420px; font-size: 13px; color: #a3543c; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <button class="refresh-btn" id="refreshBtn" type="button">重新整理</button>
+    <p class="eyebrow">乃瀧小吃店</p>
+    <h1>店務系統</h1>
+    <p>候位 · 點餐 · 廚房</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="主要分頁">
+    <button class="tab active" id="tab-wait" type="button" role="tab" aria-selected="true" aria-controls="panel-wait">
+      <span>候位</span><span class="badge" id="badge-wait">0</span>
+    </button>
+    <button class="tab" id="tab-order" type="button" role="tab" aria-selected="false" aria-controls="panel-order">
+      <span>點餐</span><span class="badge" id="badge-order">0</span>
+    </button>
+    <button class="tab" id="tab-kitchen" type="button" role="tab" aria-selected="false" aria-controls="panel-kitchen">
+      <span>廚房</span><span class="badge" id="badge-kitchen">0</span>
+    </button>
+  </nav>
+
+  <main>
+    <div id="panel-wait" role="tabpanel" aria-labelledby="tab-wait">
+      <section class="card" aria-labelledby="formTitle">
+        <h2 id="formTitle">客人取號</h2>
+        <form id="queueForm" novalidate>
+          <div class="field" id="nameField">
+            <label for="name">客人姓名 <em>必填</em></label>
+            <input id="name" name="name" type="text" inputmode="text" autocomplete="off" maxlength="12" placeholder="請輸入客人姓名">
+            <p class="err" id="nameErr" role="alert" hidden>請填客姓名</p>
+          </div>
+          <fieldset class="field">
+            <legend>人數 <em>1–4 人</em></legend>
+            <div class="seg" role="radiogroup" aria-label="用餐人數">
+              <label><input type="radio" name="size" value="1" checked><span>1</span></label>
+              <label><input type="radio" name="size" value="2"><span>2</span></label>
+              <label><input type="radio" name="size" value="3"><span>3</span></label>
+              <label><input type="radio" name="size" value="4"><span>4</span></label>
+            </div>
+          </fieldset>
+          <button class="primary" type="submit">取　號</button>
+        </form>
+        <div class="ticket" id="ticket" hidden aria-live="polite">
+          <p class="tlabel">您的號碼</p>
+          <p class="tno" id="ticketNo">A001</p>
+          <p class="tmeta" id="ticketMeta"></p>
+        </div>
+        <p class="note" id="storageNote" hidden>此瀏覽器無法暫存資料，重新整理後名單會還原。</p>
+      </section>
+
+      <section class="card" aria-labelledby="tableTitle">
+        <div class="list-head">
+          <h2 id="tableTitle">桌況</h2>
+          <span class="count" id="freeCount"></span>
+        </div>
+        <div class="tables" id="tableList"></div>
+      </section>
+
+      <section class="card" aria-labelledby="listTitle">
+        <div class="list-head">
+          <h2 id="listTitle">候位名單</h2>
+          <span class="count" id="waitCount">目前 0 組</span>
+        </div>
+        <div id="calledBlock" hidden>
+          <p class="block-label called">已叫號</p>
+          <ul class="queue" id="calledList"></ul>
+          <div class="seat-panel" id="seatPanel" hidden>
+            <p class="seat-title" id="seatTitle"></p>
+            <p class="seat-sub" id="seatSub"></p>
+            <p class="hint" id="seatHint" hidden></p>
+            <div class="seat-options" id="seatOptions"></div>
+            <button class="seat-cancel" id="seatCancel" type="button">取消入座</button>
+          </div>
+        </div>
+        <p class="block-label" id="waitingLabel">候位中</p>
+        <ul class="queue" id="queueList"></ul>
+        <p class="empty" id="empty" hidden>目前沒有人候位，歡迎直接入座。</p>
+      </section>
+
+      <section class="card" id="passedCard" aria-labelledby="passedTitle" hidden>
+        <div class="list-head">
+          <h2 id="passedTitle">已過號</h2>
+          <span class="count" id="passedCount">0 組</span>
+        </div>
+        <ul class="queue" id="passedList"></ul>
+        <p class="empty" id="passedEmpty">目前沒有過號客人。</p>
+      </section>
+
+      <details class="card rules">
+        <summary>店內規則</summary>
+        <ol>
+          <li>過號的客人回來後，請排到隊伍最後。</li>
+          <li>餐點全部完成才能結帳。</li>
+          <li>備註有過敏時，廚房會特別標示。</li>
+        </ol>
+      </details>
+
+      <div class="foot">
+        <button class="ghost" id="resetBtn" type="button">清除候位名單</button>
+      </div>
+    </div>
+
+    <div id="panel-order" role="tabpanel" aria-labelledby="tab-order" hidden>
+      <section class="card" aria-labelledby="orderTitle">
+        <h2 id="orderTitle">選擇用餐桌</h2>
+        <div id="orderNoTable" class="info" hidden>請先到候位頁帶客人入座</div>
+        <div id="orderFormArea" hidden>
+          <div class="table-pick" id="tablePick" role="group" aria-label="用餐中的桌子"></div>
+          <p class="meta" id="orderTableMeta" style="margin-top:12px;"></p>
+        </div>
+      </section>
+
+      <section class="card" id="sentCard" aria-labelledby="sentTitle" hidden>
+        <h2 id="sentTitle">本桌已送單</h2>
+        <ul class="sent-list" id="sentList"></ul>
+        <p class="empty" id="sentEmpty">本桌尚未送單。</p>
+        <div class="total-row"><span>總額</span><strong id="sentTotal">NT$ 0</strong></div>
+        <p class="meta" id="checkoutHint" style="margin:10px 0 0;"></p>
+        <button class="primary" id="checkoutBtn" type="button" style="margin-top:12px;">結帳</button>
+        <p class="send-msg" id="checkoutMsg" hidden></p>
+      </section>
+
+      <section class="card" id="cartCard" aria-labelledby="cartTitle" hidden>
+        <h2 id="cartTitle">訂單區（新訂單）</h2>
+        <ul class="cart-list" id="cartList"></ul>
+        <p class="empty" id="cartEmpty">尚未點餐，請從下方菜單點選。</p>
+        <div id="cartFooter" hidden>
+          <div class="warn-box" id="allergyWarn" hidden>這張單有含花生的餐點，但備註寫了花生過敏。請先跟客人確認。</div>
+          <div class="subtotal"><span>小計</span><strong id="cartSubtotal">NT$ 0</strong></div>
+          <div class="field" style="margin-top:14px;">
+            <label for="noteInput">備註</label>
+            <textarea id="noteInput" placeholder="可輸入備註（例如過敏需求）"></textarea>
+            <div class="quick-notes" id="quickNotes"></div>
+          </div>
+          <button class="primary" id="sendBtn" type="button">送單到廚房</button>
+          <p class="send-msg" id="sendMsg" hidden></p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="menuTitle">
+        <h2 id="menuTitle">菜單</h2>
+        <p class="meta" id="menuHint" style="margin:-6px 0 12px;">點選餐點加入這一桌的新訂單，再按一次數量加 1。</p>
+        <div id="menuArea"></div>
+      </section>
+    </div>
+
+    <div id="panel-kitchen" role="tabpanel" aria-labelledby="tab-kitchen" hidden>
+      <section class="card" aria-labelledby="kitchenTitle">
+        <h2 id="kitchenTitle">廚房</h2>
+        <p class="revenue" id="revenueBox">今日已結帳金額 NT$ 0</p>
+        <div class="k-cols" id="kitchenArea"></div>
+      </section>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'nailong.waitlist.v8';
+  var OLD_KEYS = ['nailong.waitlist.v7', 'nailong.waitlist.v6', 'nailong.waitlist.v5', 'nailong.waitlist.v4', 'nailong.waitlist.v3', 'nailong.waitlist.v2'];
+  var MIN = 60 * 1000;
+
+  var BRAISED_IMG = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="80" viewBox="0 0 96 80">' +
+    '<rect width="96" height="80" rx="10" fill="#f7efe2"/>' +
+    '<ellipse cx="48" cy="44" rx="34" ry="22" fill="#fff"/>' +
+    '<ellipse cx="48" cy="42" rx="30" ry="18" fill="#f5f1e6"/>' +
+    '<ellipse cx="48" cy="40" rx="26" ry="14" fill="#e8d9a8"/>' +
+    '<path d="M26 38c4-6 10-8 18-6 6 2 10 6 10 10 0 5-5 8-12 7-8-1-14-5-16-11z" fill="#7a4a2a"/>' +
+    '<path d="M46 34c5-4 12-4 18 0 4 3 5 7 2 10-4 4-12 4-18 0-4-3-5-7-2-10z" fill="#8b5633"/>' +
+    '<ellipse cx="40" cy="38" rx="4" ry="2.5" fill="#d9b06a"/>' +
+    '<ellipse cx="56" cy="36" rx="3.5" ry="2" fill="#d9b06a"/>' +
+    '<rect x="14" y="52" width="68" height="5" rx="2.5" fill="#d9c9b0"/>' +
+    '</svg>'
+  );
+
+  var MENU = [
+    { cat: '主食', items: [
+      { name: '滷肉飯', price: 40, allergen: '含麩質、豬肉、大豆', img: BRAISED_IMG },
+      { name: '雞絲麵', price: 30, allergen: '含麩質、雞蛋' },
+      { name: '排骨飯', price: 70, allergen: '含麩質、豬肉、大豆' }
+    ]},
+    { cat: '小菜', items: [
+      { name: '燙青菜', price: 35, allergen: '' },
+      { name: '滷蛋', price: 20, allergen: '含雞蛋、大豆' },
+      { name: '花生小魚乾', price: 15, allergen: '含花生、魚類、大豆' }
+    ]},
+    { cat: '飲品', items: [
+      { name: '冬瓜茶', price: 15, allergen: '' },
+      { name: '鮮奶紅茶', price: 35, allergen: '含牛奶' }
+    ]}
+  ];
+  var MENU_MAP = {};
+  MENU.forEach(function (c) { c.items.forEach(function (i) { MENU_MAP[i.name] = i; }); });
+
+  var QUICK_NOTES = ['花生過敏', '不要香菜', '少鹽', '飯少一點'];
+
+  // DOM
+  var form = document.getElementById('queueForm');
+  var nameField = document.getElementById('nameField');
+  var nameInput = document.getElementById('name');
+  var nameErr = document.getElementById('nameErr');
+  var listEl = document.getElementById('queueList');
+  var emptyEl = document.getElementById('empty');
+  var countEl = document.getElementById('waitCount');
+  var calledBlock = document.getElementById('calledBlock');
+  var calledList = document.getElementById('calledList');
+  var passedCard = document.getElementById('passedCard');
+  var passedList = document.getElementById('passedList');
+  var passedEmpty = document.getElementById('passedEmpty');
+  var passedCount = document.getElementById('passedCount');
+  var ticket = document.getElementById('ticket');
+  var ticketNo = document.getElementById('ticketNo');
+  var ticketMeta = document.getElementById('ticketMeta');
+  var storageNote = document.getElementById('storageNote');
+  var resetBtn = document.getElementById('resetBtn');
+  var tableList = document.getElementById('tableList');
+  var freeCount = document.getElementById('freeCount');
+  var seatPanel = document.getElementById('seatPanel');
+  var seatTitle = document.getElementById('seatTitle');
+  var seatSub = document.getElementById('seatSub');
+  var seatHint = document.getElementById('seatHint');
+  var seatOptions = document.getElementById('seatOptions');
+  var seatCancel = document.getElementById('seatCancel');
+
+  var badgeWait = document.getElementById('badge-wait');
+  var badgeOrder = document.getElementById('badge-order');
+  var badgeKitchen = document.getElementById('badge-kitchen');
+
+  var orderNoTable = document.getElementById('orderNoTable');
+  var orderFormArea = document.getElementById('orderFormArea');
+  var tablePick = document.getElementById('tablePick');
+  var orderTableMeta = document.getElementById('orderTableMeta');
+  var cartCard = document.getElementById('cartCard');
+  var cartList = document.getElementById('cartList');
+  var cartEmpty = document.getElementById('cartEmpty');
+  var cartFooter = document.getElementById('cartFooter');
+  var cartSubtotal = document.getElementById('cartSubtotal');
+  var allergyWarn = document.getElementById('allergyWarn');
+  var noteInput = document.getElementById('noteInput');
+  var quickNotes = document.getElementById('quickNotes');
+  var sendBtn = document.getElementById('sendBtn');
+  var sendMsg = document.getElementById('sendMsg');
+  var menuArea = document.getElementById('menuArea');
+
+  var sentCard = document.getElementById('sentCard');
+  var sentList = document.getElementById('sentList');
+  var sentEmpty = document.getElementById('sentEmpty');
+  var sentTotal = document.getElementById('sentTotal');
+  var checkoutHint = document.getElementById('checkoutHint');
+  var checkoutBtn = document.getElementById('checkoutBtn');
+  var checkoutMsg = document.getElementById('checkoutMsg');
+
+  var revenueBox = document.getElementById('revenueBox');
+  var kitchenArea = document.getElementById('kitchenArea');
+
+  var tabs = [
+    { btn: document.getElementById('tab-wait'), panel: document.getElementById('panel-wait') },
+    { btn: document.getElementById('tab-order'), panel: document.getElementById('panel-order') },
+    { btn: document.getElementById('tab-kitchen'), panel: document.getElementById('panel-kitchen') }
+  ];
+
+  var storageOK = true;
+  var seatingFor = null;
+  var selectedTableId = null;
+
+  function pad(no) { return 'A' + String(no).padStart(3, '0'); }
+  function padO(no) { return 'O' + String(no).padStart(3, '0'); }
+
+  function defaultTables() {
+    return [
+      { id: 1, cap: 4, guest: null },
+      { id: 2, cap: 4, guest: null },
+      { id: 3, cap: 2, guest: null },
+      { id: 4, cap: 4, guest: null },
+      { id: 5, cap: 2, guest: null }
+    ];
+  }
+
+  function openState() {
+    return {
+      next: 1,
+      nextOrder: 1,
+      todayRevenue: 0,
+      soldOut: {},
+      waiting: [],
+      called: [],
+      passed: [],
+      tables: defaultTables(),
+      carts: {},
+      orders: []
+    };
+  }
+
+  function seedState() {
+    var now = Date.now();
+    var tables = defaultTables();
+    tables[0].guest = { no: 1, name: '陳小姐', size: 2 }; // 1號桌
+    tables[1].guest = { no: 2, name: '林先生', size: 4 }; // 2號桌
+    return {
+      next: 4,
+      nextOrder: 3,
+      todayRevenue: 0,
+      soldOut: {},
+      waiting: [
+        { no: 3, name: '王同學', size: 3, at: now - 4 * MIN }
+      ],
+      called: [],
+      passed: [],
+      tables: tables,
+      carts: {},
+      orders: [
+        {
+          id: 'O001',
+          tableId: 1,
+          tableLabel: '1 號桌・陳小姐',
+          items: [
+            { name: '滷肉飯', qty: 2, price: 40, sum: 80 },
+            { name: '花生小魚乾', qty: 1, price: 15, sum: 15 }
+          ],
+          total: 95,
+          note: '花生過敏',
+          at: now - 8 * MIN,
+          status: 'todo'
+        },
+        {
+          id: 'O002',
+          tableId: 2,
+          tableLabel: '2 號桌・林先生',
+          items: [
+            { name: '雞絲麵', qty: 1, price: 30, sum: 30 },
+            { name: '冬瓜茶', qty: 2, price: 15, sum: 30 }
+          ],
+          total: 60,
+          note: '不要香菜',
+          at: now - 3 * MIN,
+          status: 'todo'
+        }
+      ]
+    };
+  }
+
+  function isValidItem(item) {
+    return item && typeof item.no === 'number' && typeof item.name === 'string' && item.name.trim() !== '' &&
+      item.size >= 1 && item.size <= 4 && typeof item.at === 'number' && isFinite(item.at);
+  }
+  function isValidGuest(g) { return g && typeof g.name === 'string' && typeof g.size === 'number' && typeof g.no === 'number'; }
+
+  function fixTables(tables) {
+    var base = defaultTables();
+    if (!Array.isArray(tables)) return base;
+    var map = {};
+    tables.forEach(function (t) { if (t && typeof t.id === 'number') map[t.id] = t; });
+    return base.map(function (b) {
+      var t = map[b.id];
+      if (!t) return b;
+      return { id: b.id, cap: b.cap, guest: isValidGuest(t.guest) ? { name: t.guest.name, size: t.guest.size, no: t.guest.no } : null };
+    });
+  }
+
+  function fixCarts(carts) {
+    var out = {};
+    if (!carts || typeof carts !== 'object') return out;
+    Object.keys(carts).forEach(function (k) {
+      var c = carts[k];
+      if (!c || typeof c !== 'object') return;
+      var items = [];
+      if (Array.isArray(c.items)) {
+        c.items.forEach(function (it) {
+          if (it && MENU_MAP[it.name] && typeof it.qty === 'number' && it.qty > 0) {
+            items.push({ name: it.name, qty: Math.floor(it.qty) });
+          }
+        });
+      }
+      out[k] = { items: items, note: typeof c.note === 'string' ? c.note : '' };
+    });
+    return out;
+  }
+
+  function fixOrders(orders) {
+    if (!Array.isArray(orders)) return [];
+    return orders.filter(function (o) { return o && typeof o.id === 'string' && typeof o.tableId === 'number'; }).map(function (o) {
+      var status = o.status;
+      if (status !== 'todo' && status !== 'making' && status !== 'done') {
+        status = o.done ? 'done' : 'todo';
+      }
+      return {
+        id: o.id,
+        tableId: o.tableId,
+        tableLabel: typeof o.tableLabel === 'string' ? o.tableLabel : (o.tableId + ' 號桌'),
+        items: Array.isArray(o.items) ? o.items : [],
+        total: typeof o.total === 'number' ? o.total : 0,
+        note: typeof o.note === 'string' ? o.note : '',
+        at: typeof o.at === 'number' ? o.at : Date.now(),
+        status: status
+      };
+    });
+  }
+
+  function fixSoldOut(soldOut) {
+    var out = {};
+    if (!soldOut || typeof soldOut !== 'object') return out;
+    Object.keys(soldOut).forEach(function (k) {
+      if (soldOut[k] && MENU_MAP[k]) out[k] = true;
+    });
+    return out;
+  }
+
+  function fixState(data) {
+    data.waiting = (data.waiting || []).filter(isValidItem);
+    data.called = (data.called || []).filter(isValidItem);
+    data.passed = (data.passed || []).filter(isValidItem);
+    data.tables = fixTables(data.tables);
+    data.carts = fixCarts(data.carts);
+    data.orders = fixOrders(data.orders);
+    data.todayRevenue = typeof data.todayRevenue === 'number' ? data.todayRevenue : 0;
+    data.soldOut = fixSoldOut(data.soldOut);
+
+    var maxNo = 0;
+    [data.waiting, data.called, data.passed].forEach(function (arr) {
+      arr.forEach(function (item) { if (item.no > maxNo) maxNo = item.no; });
+    });
+    data.tables.forEach(function (t) { if (t.guest && t.guest.no > maxNo) maxNo = t.guest.no; });
+    data.next = Math.max(data.next || 1, maxNo + 1, 1);
+
+    var maxO = 0;
+    data.orders.forEach(function (o) {
+      var m = /^O(\d+)$/.exec(o.id);
+      if (m) maxO = Math.max(maxO, parseInt(m[1], 10));
+    });
+    data.nextOrder = Math.max(data.nextOrder || 1, maxO + 1, 1);
+    return data;
+  }
+
+  function load() {
+    try {
+      var raw = window.localStorage.getItem(KEY);
+      if (raw) { var data = JSON.parse(raw); if (data && typeof data === 'object') return fixState(data); }
+      for (var i = 0; i < OLD_KEYS.length; i++) {
+        var oldRaw = window.localStorage.getItem(OLD_KEYS[i]);
+        if (!oldRaw) continue;
+        var oldData = JSON.parse(oldRaw);
+        if (!oldData || typeof oldData !== 'object') continue;
+        return fixState({
+          next: oldData.next, nextOrder: 1, todayRevenue: 0, soldOut: {},
+          waiting: oldData.waiting || oldData.list || [],
+          called: oldData.called || [], passed: oldData.passed || [],
+          tables: oldData.tables || defaultTables(), carts: {}, orders: []
+        });
+      }
+      return seedState();
+    } catch (e) { return seedState(); }
+  }
+
+  function save() {
+    if (!storageOK) return;
+    try { window.localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { storageOK = false; if (storageNote) storageNote.hidden = false; }
+  }
+
+  var state = load();
+  save();
+
+  function waitText(at) {
+    var minutes = Math.floor((Date.now() - at) / MIN);
+    if (minutes < 1) return '已等不到 1 分鐘';
+    if (minutes < 60) return '已等 ' + minutes + ' 分鐘';
+    var hours = Math.floor(minutes / 60);
+    var rest = minutes % 60;
+    return '已等 ' + hours + ' 小時' + (rest ? ' ' + rest + ' 分' : '');
+  }
+  function calledText(calledAt) {
+    var minutes = Math.floor((Date.now() - (calledAt || Date.now())) / MIN);
+    if (minutes < 1) return '叫號後不到 1 分鐘';
+    if (minutes < 60) return '叫號後 ' + minutes + ' 分鐘';
+    var hours = Math.floor(minutes / 60);
+    var rest = minutes % 60;
+    return '叫號後 ' + hours + ' 小時' + (rest ? ' ' + rest + ' 分' : '');
+  }
+
+  function makeButton(className, text, label, onClick) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = className; btn.textContent = text;
+    if (label) btn.setAttribute('aria-label', label);
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  function showTab(index) {
+    tabs.forEach(function (t, i) {
+      var active = i === index;
+      t.btn.classList.toggle('active', active);
+      t.btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      t.panel.hidden = !active;
+    });
+  }
+  tabs.forEach(function (t, i) { t.btn.addEventListener('click', function () { showTab(i); }); });
+
+  function ensureCart(tableId) {
+    var k = String(tableId);
+    if (!state.carts[k]) state.carts[k] = { items: [], note: '' };
+    return state.carts[k];
+  }
+  function cartTotal(cart) {
+    return cart.items.reduce(function (sum, it) { return sum + (MENU_MAP[it.name] ? MENU_MAP[it.name].price * it.qty : 0); }, 0);
+  }
+
+  function renderTables() {
+    var dining = state.tables.filter(function (t) { return t.guest; }).length;
+    var free = state.tables.length - dining;
+    freeCount.innerHTML = '空桌 <strong>' + free + '</strong> / ' + state.tables.length;
+    tableList.textContent = '';
+    state.tables.forEach(function (t) {
+      var card = document.createElement('div');
+      card.className = 'table-card ' + (t.guest ? 'busy' : 'free');
+      var top = document.createElement('div'); top.className = 'table-top';
+      var no = document.createElement('div'); no.className = 'table-no'; no.textContent = t.id + ' 號桌';
+      var status = document.createElement('span'); status.className = 'status ' + (t.guest ? 'busy' : 'free');
+      status.textContent = t.guest ? '用餐中' : '空桌';
+      top.appendChild(no); top.appendChild(status);
+      var meta = document.createElement('p'); meta.className = 'table-meta'; meta.textContent = '可坐 ' + t.cap + ' 人';
+      card.appendChild(top); card.appendChild(meta);
+      if (t.guest) {
+        var guest = document.createElement('p'); guest.className = 'table-guest';
+        guest.textContent = t.guest.name + ' · ' + t.guest.size + ' 人';
+        card.appendChild(guest);
+        card.appendChild(makeButton('btn-clear', '清桌', '清空 ' + t.id + ' 號桌', function () {
+          t.guest = null; state.carts[String(t.id)] = { items: [], note: '' }; save(); render();
+        }));
+      }
+      tableList.appendChild(card);
+    });
+  }
+
+  function renderSeatPanel() {
+    if (!seatingFor) { seatPanel.hidden = true; return; }
+    var item = state.called.find(function (x) { return x.no === seatingFor.no; });
+    if (!item) { seatingFor = null; seatPanel.hidden = true; return; }
+    seatPanel.hidden = false;
+    seatTitle.textContent = '入座安排：' + pad(item.no) + ' ' + item.name;
+    seatSub.textContent = item.size + ' 人 · 請選擇坐得下的空桌';
+    var fits = state.tables.filter(function (t) { return !t.guest && t.cap >= item.size; });
+    seatOptions.textContent = '';
+    if (fits.length === 0) {
+      seatHint.hidden = false; seatHint.textContent = '目前沒有坐得下的空桌';
+    } else {
+      seatHint.hidden = true;
+      fits.forEach(function (t) {
+        seatOptions.appendChild(makeButton('seat-opt', t.id + ' 號桌（' + t.cap + ' 人）', '安排到 ' + t.id + ' 號桌', function () { seatToTable(item, t); }));
+      });
+    }
+  }
+
+  function renderQueue() {
+    var waiting = state.waiting;
+    countEl.textContent = waiting.length ? '候位中 ' + waiting.length + ' 組' : '目前 0 組';
+    emptyEl.hidden = waiting.length > 0;
+    listEl.textContent = '';
+    waiting.forEach(function (item, index) {
+      var li = document.createElement('li'); li.className = 'row' + (index === 0 ? ' first' : '');
+      var noEl = document.createElement('div'); noEl.className = 'no'; noEl.textContent = pad(item.no);
+      var body = document.createElement('div'); body.className = 'body';
+      var nmrow = document.createElement('div'); nmrow.className = 'nmrow';
+      var nm = document.createElement('p'); nm.className = 'nm'; nm.textContent = item.name; nmrow.appendChild(nm);
+      if (index === 0) { var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = '下一位'; nmrow.appendChild(tag); }
+      var meta = document.createElement('p'); meta.className = 'meta';
+      meta.textContent = item.size + ' 人 · ' + waitText(item.at) + ' · 前面還有 ' + index + ' 組';
+      body.appendChild(nmrow); body.appendChild(meta);
+      var actions = document.createElement('div'); actions.className = 'actions';
+      actions.appendChild(makeButton('btn btn-call', '叫號', '叫 ' + item.name, function () { callItem(item); }));
+      actions.appendChild(makeButton('btn btn-pass', '過號', '將 ' + item.name + ' 標記為過號', function () { passFromWaiting(item); }));
+      li.appendChild(noEl); li.appendChild(body); li.appendChild(actions); listEl.appendChild(li);
+    });
+
+    var called = state.called.slice().sort(function (a, b) { return ((b.calledAt || 0) - (a.calledAt || 0)) || (b.no - a.no); });
+    calledBlock.hidden = called.length === 0; calledList.textContent = '';
+    called.forEach(function (item) {
+      var li = document.createElement('li'); li.className = 'row called';
+      var noEl = document.createElement('div'); noEl.className = 'no'; noEl.textContent = pad(item.no);
+      var body = document.createElement('div'); body.className = 'body';
+      var nmrow = document.createElement('div'); nmrow.className = 'nmrow';
+      var nm = document.createElement('p'); nm.className = 'nm'; nm.textContent = item.name; nmrow.appendChild(nm);
+      var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = '已叫號'; nmrow.appendChild(tag);
+      var meta = document.createElement('p'); meta.className = 'meta';
+      meta.textContent = item.size + ' 人 · ' + waitText(item.at) + ' · ' + calledText(item.calledAt);
+      body.appendChild(nmrow); body.appendChild(meta);
+      var actions = document.createElement('div'); actions.className = 'actions';
+      actions.appendChild(makeButton('btn btn-done', '入座', '為 ' + item.name + ' 安排入座', function () { openSeat(item); }));
+      actions.appendChild(makeButton('btn btn-pass', '過號', '將 ' + item.name + ' 標記為過號', function () { passItem(item); }));
+      li.appendChild(noEl); li.appendChild(body); li.appendChild(actions); calledList.appendChild(li);
+    });
+    renderSeatPanel();
+
+    var passed = state.passed;
+    passedCard.hidden = passed.length === 0; passedCount.textContent = passed.length + ' 組';
+    passedEmpty.hidden = passed.length > 0; passedList.textContent = '';
+    passed.forEach(function (item) {
+      var li = document.createElement('li'); li.className = 'row passed';
+      var noEl = document.createElement('div'); noEl.className = 'no'; noEl.textContent = pad(item.no);
+      var body = document.createElement('div'); body.className = 'body';
+      var nmrow = document.createElement('div'); nmrow.className = 'nmrow';
+      var nm = document.createElement('p'); nm.className = 'nm'; nm.textContent = item.name; nmrow.appendChild(nm);
+      var tag = document.createElement('span'); tag.className = 'tag green'; tag.textContent = '已過號'; nmrow.appendChild(tag);
+      var meta = document.createElement('p'); meta.className = 'meta'; meta.textContent = item.size + ' 人 · ' + waitText(item.at);
+      body.appendChild(nmrow); body.appendChild(meta);
+      var actions = document.createElement('div'); actions.className = 'actions';
+      actions.appendChild(makeButton('btn btn-back', '客人回來了，請排到隊伍最後', '將 ' + item.name + ' 排回候位隊尾', function () { backItem(item); }));
+      actions.appendChild(makeButton('btn-remove', '移除', '移除 ' + item.name, function () { removePassed(item); }));
+      li.appendChild(noEl); li.appendChild(body); li.appendChild(actions); passedList.appendChild(li);
+    });
+  }
+
+  function statusLabel(s) {
+    if (s === 'todo') return '待製作';
+    if (s === 'making') return '製作中';
+    return '已完成';
+  }
+
+  function renderSentOrders() {
+    if (selectedTableId == null) { sentCard.hidden = true; return; }
+    sentCard.hidden = false;
+    var orders = state.orders.filter(function (o) { return o.tableId === selectedTableId; });
+    sentList.textContent = '';
+    sentEmpty.hidden = orders.length > 0;
+    var total = 0;
+    var allDone = orders.length > 0;
+    orders.forEach(function (o) {
+      total += o.total;
+      if (o.status !== 'done') allDone = false;
+      var li = document.createElement('li'); li.className = 'sent-item';
+      var head = document.createElement('div'); head.className = 'sent-head';
+      var left = document.createElement('span'); left.textContent = o.id + ' · ' + o.tableId + ' 號桌';
+      var prog = document.createElement('span'); prog.className = 'prog ' + o.status; prog.textContent = statusLabel(o.status);
+      head.appendChild(left); head.appendChild(prog);
+      var ul = document.createElement('ul'); ul.className = 'order-items';
+      o.items.forEach(function (it) { var item = document.createElement('li'); item.textContent = it.name + ' × ' + it.qty; ul.appendChild(item); });
+      var meta = document.createElement('p'); meta.className = 'order-meta'; meta.textContent = elapsedText(o.at) + ' · NT$ ' + o.total;
+      li.appendChild(head); li.appendChild(ul); li.appendChild(meta);
+      sentList.appendChild(li);
+    });
+    sentTotal.textContent = 'NT$ ' + total;
+    checkoutBtn.disabled = !(allDone && orders.length > 0);
+    if (orders.length === 0) {
+      checkoutHint.textContent = '尚未有已送單，無法結帳。';
+    } else if (!allDone) {
+      checkoutHint.textContent = '餐點尚未全部完成，完成後才能結帳。';
+    } else {
+      checkoutHint.textContent = '餐點已全部完成，可以結帳。';
+    }
+  }
+
+  function renderOrder() {
+    var dining = state.tables.filter(function (t) { return t.guest; });
+    if (dining.length === 0) {
+      selectedTableId = null;
+      orderNoTable.hidden = false; orderFormArea.hidden = true; cartCard.hidden = true; sentCard.hidden = true;
+      return;
+    }
+    orderNoTable.hidden = true; orderFormArea.hidden = false; cartCard.hidden = false;
+    if (!dining.some(function (t) { return t.id === selectedTableId; })) selectedTableId = dining[0].id;
+
+    tablePick.textContent = '';
+    dining.forEach(function (t) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'pick-btn' + (t.id === selectedTableId ? ' selected' : '');
+      btn.textContent = t.id + ' 號桌・' + t.guest.name;
+      btn.addEventListener('click', function () { selectedTableId = t.id; checkoutMsg.hidden = true; renderOrder(); });
+      tablePick.appendChild(btn);
+    });
+    var sel = dining.find(function (t) { return t.id === selectedTableId; });
+    orderTableMeta.textContent = sel ? ('已選定：' + sel.id + ' 號桌・' + sel.guest.name + '（' + sel.guest.size + ' 人）') : '';
+    renderCart();
+    renderSentOrders();
+  }
+
+  function renderCart() {
+    if (selectedTableId == null) return;
+    var cart = ensureCart(selectedTableId);
+    var items = cart.items.filter(function (it) { return MENU_MAP[it.name] && it.qty > 0; });
+    cart.items = items;
+    var isEmpty = items.length === 0;
+    cartEmpty.hidden = !isEmpty;
+    cartFooter.hidden = isEmpty;
+    cartList.textContent = '';
+    items.forEach(function (it) {
+      var m = MENU_MAP[it.name];
+      var li = document.createElement('li'); li.className = 'cart-item';
+      var left = document.createElement('div');
+      var name = document.createElement('div'); name.className = 'cart-name'; name.textContent = it.name;
+      var sub = document.createElement('div'); sub.className = 'cart-sub'; sub.textContent = 'NT$ ' + m.price + ' × ' + it.qty + ' = NT$ ' + (m.price * it.qty);
+      left.appendChild(name); left.appendChild(sub);
+      var qty = document.createElement('div'); qty.className = 'qty';
+      qty.appendChild(makeButton('', '−', '減少 ' + it.name, function () { changeQty(it.name, -1); }));
+      var span = document.createElement('span'); span.textContent = String(it.qty); qty.appendChild(span);
+      qty.appendChild(makeButton('', '+', '增加 ' + it.name, function () { changeQty(it.name, 1); }));
+      li.appendChild(left); li.appendChild(qty); cartList.appendChild(li);
+    });
+    cartSubtotal.textContent = 'NT$ ' + cartTotal(cart);
+    sendBtn.disabled = isEmpty;
+    if (noteInput !== document.activeElement) noteInput.value = cart.note || '';
+
+    var noteText = cart.note || '';
+    var hasPeanutAllergyNote = noteText.indexOf('花生') !== -1 && noteText.indexOf('過敏') !== -1;
+    var hasPeanutItem = items.some(function (it) {
+      var m = MENU_MAP[it.name];
+      return m && m.allergen && m.allergen.indexOf('花生') !== -1;
+    });
+    allergyWarn.hidden = !(hasPeanutAllergyNote && hasPeanutItem);
+  }
+
+  function renderQuickNotes() {
+    quickNotes.textContent = '';
+    QUICK_NOTES.forEach(function (n) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = n;
+      b.addEventListener('click', function () {
+        if (selectedTableId == null) return;
+        var cart = ensureCart(selectedTableId);
+        var cur = (cart.note || '').trim();
+        if (!cur) cart.note = n;
+        else if (cur.indexOf(n) === -1) cart.note = cur + '、' + n;
+        noteInput.value = cart.note;
+        save();
+        renderCart();
+      });
+      quickNotes.appendChild(b);
+    });
+  }
+
+  noteInput.addEventListener('input', function () {
+    if (selectedTableId == null) return;
+    var cart = ensureCart(selectedTableId);
+    cart.note = noteInput.value;
+    save();
+    renderCart();
+  });
+
+  function addToCart(name) {
+    if (selectedTableId == null) return;
+    var cart = ensureCart(selectedTableId);
+    var found = cart.items.find(function (it) { return it.name === name; });
+    if (found) found.qty += 1; else cart.items.push({ name: name, qty: 1 });
+    sendMsg.hidden = true;
+    save(); renderCart(); renderBadges();
+  }
+
+  function changeQty(name, delta) {
+    if (selectedTableId == null) return;
+    var cart = ensureCart(selectedTableId);
+    var found = cart.items.find(function (it) { return it.name === name; });
+    if (!found) return;
+    found.qty += delta;
+    if (found.qty <= 0) cart.items = cart.items.filter(function (it) { return it !== found; });
+    save(); renderCart(); renderBadges();
+  }
+
+  sendBtn.addEventListener('click', function () {
+    if (selectedTableId == null) return;
+    var cart = ensureCart(selectedTableId);
+    var items = cart.items.filter(function (it) { return MENU_MAP[it.name] && it.qty > 0; });
+    if (items.length === 0) return;
+    var sold = items.filter(function (it) { return state.soldOut && state.soldOut[it.name]; }).map(function (it) { return it.name; });
+    if (sold.length > 0) {
+      sendMsg.textContent = '請先移除售完品項：' + sold.join('、');
+      sendMsg.style.color = '#c0392b';
+      sendMsg.hidden = false;
+      return;
+    }
+    sendMsg.style.color = '';
+    var table = state.tables.find(function (t) { return t.id === selectedTableId; });
+    var orderItems = items.map(function (it) {
+      var m = MENU_MAP[it.name];
+      return { name: it.name, qty: it.qty, price: m.price, sum: m.price * it.qty };
+    });
+    var order = {
+      id: padO(state.nextOrder++),
+      tableId: selectedTableId,
+      tableLabel: selectedTableId + ' 號桌' + (table && table.guest ? '・' + table.guest.name : ''),
+      items: orderItems,
+      total: orderItems.reduce(function (s, i) { return s + i.sum; }, 0),
+      note: (cart.note || '').trim(),
+      at: Date.now(),
+      status: 'todo'
+    };
+    state.orders.push(order);
+    state.carts[String(selectedTableId)] = { items: [], note: '' };
+    noteInput.value = '';
+    sendMsg.textContent = '已送到廚房（訂單編號：' + order.id + '）';
+    sendMsg.hidden = false;
+    checkoutMsg.hidden = true;
+    save(); render();
+  });
+
+  checkoutBtn.addEventListener('click', function () {
+    if (selectedTableId == null) return;
+    var tableOrders = state.orders.filter(function (o) { return o.tableId === selectedTableId; });
+    if (tableOrders.length === 0) return;
+    if (tableOrders.some(function (o) { return o.status !== 'done'; })) return;
+    var total = tableOrders.reduce(function (s, o) { return s + o.total; }, 0);
+    state.todayRevenue = (state.todayRevenue || 0) + total;
+    state.orders = state.orders.filter(function (o) { return o.tableId !== selectedTableId; });
+    var table = state.tables.find(function (t) { return t.id === selectedTableId; });
+    if (table) table.guest = null;
+    state.carts[String(selectedTableId)] = { items: [], note: '' };
+    selectedTableId = null;
+    checkoutMsg.textContent = '結帳完成，已累計今日已結帳金額。';
+    checkoutMsg.hidden = false;
+    save(); render();
+  });
+
+  function renderMenu() {
+    menuArea.textContent = '';
+    MENU.forEach(function (cat) {
+      var h = document.createElement('h3'); h.className = 'menu-cat'; h.textContent = cat.cat; menuArea.appendChild(h);
+      var ul = document.createElement('ul'); ul.className = 'menu-list';
+      cat.items.forEach(function (item) {
+        var li = document.createElement('li');
+        var isSold = !!(state.soldOut && state.soldOut[item.name]);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'menu-btn' + (item.img ? ' has-img' : '');
+        btn.disabled = isSold;
+
+        var row = document.createElement('div'); row.className = 'menu-row';
+        var name = document.createElement('span'); name.className = 'menu-name'; name.textContent = item.name;
+        var price = document.createElement('span'); price.className = 'menu-price'; price.textContent = item.price + ' 元';
+        row.appendChild(name); row.appendChild(price);
+
+        var statusNode = null;
+        if (isSold) {
+          statusNode = document.createElement('span'); statusNode.className = 'sold-tag'; statusNode.textContent = '今日售完';
+        } else if (item.allergen) {
+          statusNode = document.createElement('span'); statusNode.className = 'allergen-red'; statusNode.textContent = item.allergen;
+        }
+
+        if (item.img) {
+          var img = document.createElement('img');
+          img.className = 'menu-img';
+          img.src = item.img;
+          img.alt = item.name;
+          img.width = 96;
+          img.height = 80;
+          var side = document.createElement('div'); side.className = 'menu-side';
+          side.appendChild(row);
+          if (statusNode) side.appendChild(statusNode);
+          btn.appendChild(img);
+          btn.appendChild(side);
+        } else {
+          btn.appendChild(row);
+          if (statusNode) btn.appendChild(statusNode);
+        }
+
+        btn.addEventListener('click', function () { addToCart(item.name); });
+        li.appendChild(btn); ul.appendChild(li);
+      });
+      menuArea.appendChild(ul);
+    });
+  }
+
+  function elapsedText(at) {
+    var minutes = Math.floor((Date.now() - at) / MIN);
+    if (minutes < 1) return '送單後不到 1 分鐘';
+    if (minutes < 60) return '送單後 ' + minutes + ' 分鐘';
+    var hours = Math.floor(minutes / 60);
+    var rest = minutes % 60;
+    return '送單後 ' + hours + ' 小時' + (rest ? ' ' + rest + ' 分' : '');
+  }
+
+  function isAllergyNote(note) {
+    return /過敏/.test(note || '');
+  }
+
+  function renderKitchen() {
+    revenueBox.textContent = '今日已結帳金額 NT$ ' + (state.todayRevenue || 0);
+    var cols = [
+      { key: 'todo', title: '待製作', action: '開始製作', cls: 'k-start' },
+      { key: 'making', title: '製作中', action: '出餐完成', cls: 'k-finish' },
+      { key: 'done', title: '已完成', action: null, cls: '' }
+    ];
+    kitchenArea.textContent = '';
+    cols.forEach(function (col) {
+      var list = state.orders.filter(function (o) { return o.status === col.key; });
+      var box = document.createElement('div'); box.className = 'k-col';
+      var h = document.createElement('h3');
+      h.appendChild(document.createTextNode(col.title));
+      var cnt = document.createElement('span'); cnt.textContent = list.length + ' 單'; h.appendChild(cnt);
+      box.appendChild(h);
+
+      if (list.length === 0) {
+        var empty = document.createElement('p'); empty.className = 'empty'; empty.style.padding = '10px 0'; empty.textContent = '目前沒有單。';
+        box.appendChild(empty);
+      } else {
+        list.forEach(function (o) {
+          var card = document.createElement('div'); card.className = 'order-card';
+          var head = document.createElement('div'); head.className = 'order-head';
+          var left = document.createElement('span'); left.textContent = o.id + ' · ' + o.tableLabel;
+          var right = document.createElement('span'); right.textContent = 'NT$ ' + o.total;
+          head.appendChild(left); head.appendChild(right);
+          card.appendChild(head);
+
+          if (o.note) {
+            var nb = document.createElement('div');
+            nb.className = 'note-box ' + (isAllergyNote(o.note) ? 'note-allergy' : 'note-normal');
+            nb.textContent = (isAllergyNote(o.note) ? '過敏注意：' : '備註：') + o.note;
+            card.appendChild(nb);
+          }
+
+          var meta = document.createElement('p'); meta.className = 'order-meta';
+          meta.textContent = elapsedText(o.at);
+          card.appendChild(meta);
+
+          var ul = document.createElement('ul'); ul.className = 'order-items';
+          o.items.forEach(function (it) { var li = document.createElement('li'); li.textContent = it.name + ' × ' + it.qty; ul.appendChild(li); });
+          card.appendChild(ul);
+
+          if (col.action) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'k-action ' + col.cls; b.textContent = col.action;
+            b.addEventListener('click', function () {
+              o.status = col.key === 'todo' ? 'making' : 'done';
+              save(); render();
+            });
+            card.appendChild(b);
+          }
+          box.appendChild(card);
+        });
+      }
+      kitchenArea.appendChild(box);
+    });
+
+    // 餐點售完狀態
+    var stockSec = document.createElement('div'); stockSec.className = 'stock-sec';
+    var sh = document.createElement('h3'); sh.textContent = '餐點售完狀態'; stockSec.appendChild(sh);
+    var sl = document.createElement('ul'); sl.className = 'stock-list';
+    Object.keys(MENU_MAP).forEach(function (name) {
+      var isSold = !!(state.soldOut && state.soldOut[name]);
+      var li = document.createElement('li'); li.className = 'stock-item';
+      var nm = document.createElement('span'); nm.className = 'stock-name'; nm.textContent = name;
+      var btn = document.createElement('button'); btn.type = 'button';
+      btn.className = 'stock-btn ' + (isSold ? 'off' : 'on');
+      btn.textContent = isSold ? '今日售完（點擊恢復）' : '供應中（點擊售完）';
+      btn.addEventListener('click', function () {
+        if (!state.soldOut) state.soldOut = {};
+        if (state.soldOut[name]) delete state.soldOut[name]; else state.soldOut[name] = true;
+        save(); render();
+      });
+      li.appendChild(nm); li.appendChild(btn); sl.appendChild(li);
+    });
+    stockSec.appendChild(sl);
+    kitchenArea.appendChild(stockSec);
+  }
+
+  function renderBadges() {
+    var waitingCount = state.waiting.length + state.called.length;
+    var diningCount = state.tables.filter(function (t) { return t.guest; }).length;
+    var pending = state.orders.filter(function (o) { return o.status !== 'done'; }).length;
+    badgeWait.textContent = String(waitingCount);
+    badgeOrder.textContent = String(diningCount);
+    badgeKitchen.textContent = String(pending);
+  }
+
+  function render() {
+    renderTables(); renderQueue(); renderOrder(); renderMenu(); renderKitchen(); renderBadges();
+  }
+
+  // Actions
+  function callItem(item) { state.waiting = state.waiting.filter(function (x) { return x !== item; }); item.calledAt = Date.now(); state.called.push(item); save(); render(); }
+  function openSeat(item) { seatingFor = { no: item.no }; render(); seatPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  function seatToTable(item, table) {
+    if (table.guest || table.cap < item.size) { render(); return; }
+    state.called = state.called.filter(function (x) { return x !== item; });
+    table.guest = { no: item.no, name: item.name, size: item.size };
+    seatingFor = null; save(); render();
+  }
+  function passItem(item) { state.called = state.called.filter(function (x) { return x !== item; }); if (seatingFor && seatingFor.no === item.no) seatingFor = null; state.passed.push(item); save(); render(); }
+  function passFromWaiting(item) { state.waiting = state.waiting.filter(function (x) { return x !== item; }); delete item.calledAt; state.passed.push(item); save(); render(); }
+  function backItem(item) { state.passed = state.passed.filter(function (x) { return x !== item; }); item.at = Date.now(); delete item.calledAt; state.waiting.push(item); save(); render(); }
+  function removePassed(item) { state.passed = state.passed.filter(function (x) { return x !== item; }); save(); render(); }
+
+  seatCancel.addEventListener('click', function () { seatingFor = null; render(); });
+
+  function showNameError() { nameField.classList.add('invalid'); nameErr.hidden = false; nameInput.setAttribute('aria-invalid', 'true'); nameInput.focus(); }
+  function clearNameError() { nameField.classList.remove('invalid'); nameErr.hidden = true; nameInput.removeAttribute('aria-invalid'); }
+  nameInput.addEventListener('input', function () { if (nameInput.value.trim()) clearNameError(); });
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var name = nameInput.value.replace(/\s+/g, ' ').trim();
+    if (!name) { showNameError(); return; }
+    clearNameError();
+    var checked = form.querySelector('input[name="size"]:checked');
+    var size = checked ? Number(checked.value) : 1;
+    if (!(size >= 1 && size <= 4)) size = 1;
+    var ahead = state.waiting.length;
+    var item = { no: state.next, name: name, size: size, at: Date.now() };
+    state.next += 1; state.waiting.push(item); save(); render();
+    ticketNo.textContent = pad(item.no);
+    ticketMeta.textContent = name + ' · ' + size + ' 人 · 前面還有 ' + ahead + ' 組';
+    ticket.hidden = false; form.reset(); nameInput.value = '';
+  });
+
+  var refreshBtn = document.getElementById('refreshBtn');
+  refreshBtn.addEventListener('click', function () {
+    if (!window.confirm('確定要重新整理並清空所有候位與訂單資料，重設為開店狀態嗎？')) return;
+    state = openState();
+    seatingFor = null;
+    selectedTableId = null;
+    save();
+    render();
+    ticket.hidden = true;
+    sendMsg.hidden = true;
+    checkoutMsg.hidden = true;
+  });
+
+  resetBtn.addEventListener('click', function () {
+    if (!window.confirm('確定要清除所有候位紀錄嗎？')) return;
+    state.waiting = []; state.called = []; state.passed = [];
+    state.tables = defaultTables(); state.carts = {}; state.orders = []; state.nextOrder = 1; state.todayRevenue = 0; state.soldOut = {}; seatingFor = null; selectedTableId = null;
+    save(); render(); ticket.hidden = true; sendMsg.hidden = true; checkoutMsg.hidden = true;
+  });
+
+  window.setInterval(render, 30000);
+  renderMenu(); renderQuickNotes(); render();
+})();
+</script>
+</body>
+</html>
